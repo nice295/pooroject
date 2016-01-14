@@ -10,7 +10,9 @@ if (Meteor.isClient) {
 
   Template.hello.helpers({
     result: function () {
-      return Session.get('recentTweets')[0].get("building_name");
+      var json = Session.get('resultJson');
+      var retultHtml = json.building_name;
+      return retultHtml;
     }
   });
 
@@ -22,15 +24,14 @@ if (Meteor.isClient) {
     'click #fetchButton' : function () {
       console.log("Recent tweets from stream!");
       $('#fetchButton').attr('disabled','true').val('loading...');
-      userName = $('#userName').val();
-      Meteor.call('fetchFromService', userName, function(err, respJson) {
+      id = $('#id').val();
+      Meteor.call('fetchFromService', id, function(err, respJson) {
         if(err) {
           window.alert("Error: " + err.reason);
           console.log("error occured on receiving data on server. ", err );
         } else {
-          console.log("respJson: ", respJson);
-          //window.alert(respJson.length + ' tweets received.');
-          Session.set("recentTweets",respJson);
+          console.log("respJson: ", respJson[0]);
+          Session.set('resultJson', respJson[0]);
         }
         $('#fetchButton').removeAttr('disabled').val('Fetch');
       });
@@ -44,7 +45,7 @@ if (Meteor.isServer) {
   });
 
   Meteor.methods({
-    fetchFromService: function(userName) {
+    fetchFromService: function(id) {
       var url = "http://52.192.77.6:3000/floors/24.json";
       //synchronous GET
       var result = Meteor.http.get(url, {timeout:30000});
